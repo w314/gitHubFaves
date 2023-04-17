@@ -1,5 +1,7 @@
 import React from "react";
-import propTypes from "prop-types";
+import PropTypes from "prop-types";
+import { close } from "./icons";
+import Results from "./Results";
 
 function Instructions() {
   return (
@@ -60,6 +62,38 @@ class PlayerInput extends React.Component {
   }
 }
 
+function PlayerPreview({ username, onReset, label }) {
+  return (
+    <article className="card">
+      <h3 className="player-label">{label}</h3>
+      <div className="split">
+        <div className="row gap-md">
+          <img
+            width={32}
+            height={32}
+            className="avatar"
+            src={`https://github.com/${username}.png?size=200`}
+            alt={`Avatar for ${username}`}
+          />
+          <a href={`https://github.com/${username}`} className="link">
+            {username}
+          </a>
+        </div>
+        <button onClick={onReset} className="btn secondary icon">
+          {close}
+        </button>
+        \
+      </div>
+    </article>
+  );
+}
+
+PlayerPreview.propTypes = {
+  username: PropTypes.string.isRequired,
+  onReset: PropTypes.func.isRequired,
+  label: PropTypes.string.isRequired,
+};
+
 export default class Battle extends React.Component {
   constructor(props) {
     super(props);
@@ -67,23 +101,38 @@ export default class Battle extends React.Component {
     this.state = {
       playerOne: null,
       playerTwo: null,
+      battle: false,
     };
 
     this.onPlayerSubmit = this.onPlayerSubmit.bind(this);
+    this.onPlayerReset = this.onPlayerReset.bind(this);
   }
 
   onPlayerSubmit(key, player) {
     this.setState({ [key]: player });
   }
 
+  onPlayerReset(player) {
+    this.setState({ [player]: null });
+  }
+
   render() {
-    const { playerOne, playerTwo } = this.state;
+    const { playerOne, playerTwo, battle } = this.state;
     const disabled = !playerOne || !playerTwo;
+    if (battle === true) {
+      return <Results playerOne={playerOne} playerTwo={playerTwo} />;
+    }
     return (
       <main className="stack main-stack animate-in">
         <div className="split">
           <h1>Players</h1>
-          <a className={`btn primary ${disabled ? "disabled" : ""}`}>Battle</a>
+          {/* <pre>{JSON.stringify(this.state, null, 2)}</pre> */}
+          <button
+            className={`btn primary ${disabled ? "disabled" : ""}`}
+            onClick={() => this.setState({ battle: true })}
+          >
+            Battle
+          </button>
         </div>
         <section className="grid">
           {playerOne === null ? (
@@ -91,13 +140,25 @@ export default class Battle extends React.Component {
               onSubmit={(player) => this.onPlayerSubmit("playerOne", player)}
               label="Player One"
             ></PlayerInput>
-          ) : null}
+          ) : (
+            <PlayerPreview
+              username={playerOne}
+              onReset={() => this.onPlayerReset("playerOne")}
+              label="Player One"
+            />
+          )}
           {playerTwo === null ? (
             <PlayerInput
               onSubmit={(player) => this.onPlayerSubmit("playerTwo", player)}
               label="Player Two"
             ></PlayerInput>
-          ) : null}
+          ) : (
+            <PlayerPreview
+              username={playerTwo}
+              onReset={() => this.onPlayerReset("playerTwo")}
+              label="Player Two"
+            />
+          )}
         </section>
         <Instructions />
       </main>
